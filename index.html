@@ -1,0 +1,1068 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GOVERNMENT SHUTDOWN TERMINAL</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    html, body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        color: #00ff66;
+        font-family: "Courier New", monospace;
+        overflow: hidden;
+    }
+
+    body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    #boot {
+        position: fixed;
+        inset: 0;
+        background: #000;
+        padding: 35px;
+        z-index: 1000;
+        white-space: pre-wrap;
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    #boot button {
+        margin-top: 20px;
+        background: #000;
+        color: #00ff66;
+        border: 1px solid #00ff66;
+        padding: 10px 18px;
+        font-family: inherit;
+        cursor: pointer;
+    }
+
+    #boot button:hover {
+        background: #00ff66;
+        color: #000;
+    }
+
+    #os {
+        display: none;
+        width: 100%;
+        height: 100%;
+        flex-direction: column;
+    }
+
+    header {
+        height: 55px;
+        border-bottom: 1px solid #00ff66;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 18px;
+        font-size: 13px;
+        flex-shrink: 0;
+    }
+
+    .classified {
+        color: #00ff66;
+    }
+
+    #clock {
+        opacity: .8;
+    }
+
+    main {
+        display: flex;
+        flex: 1;
+        min-height: 0;
+    }
+
+    #sidebar {
+        width: 210px;
+        border-right: 1px solid #00ff66;
+        padding: 15px;
+        flex-shrink: 0;
+    }
+
+    .side-title {
+        font-size: 12px;
+        margin-bottom: 18px;
+        opacity: .65;
+    }
+
+    .app {
+        border: 1px solid transparent;
+        padding: 11px 8px;
+        margin-bottom: 7px;
+        cursor: pointer;
+        font-size: 13px;
+    }
+
+    .app:hover,
+    .app.active {
+        border-color: #00ff66;
+        background: #001a08;
+    }
+
+    .app::before {
+        content: "> ";
+    }
+
+    #content {
+        flex: 1;
+        min-width: 0;
+        padding: 20px;
+        overflow: auto;
+    }
+
+    .window {
+        display: none;
+        max-width: 1000px;
+    }
+
+    .window.active {
+        display: block;
+    }
+
+    .window-title {
+        border-bottom: 1px solid #00ff66;
+        padding-bottom: 10px;
+        margin-bottom: 18px;
+        font-size: 16px;
+    }
+
+    .warning {
+        border: 1px solid #00ff66;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    .warning strong {
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    .status-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .status {
+        border: 1px solid #164d29;
+        padding: 13px;
+    }
+
+    .status span {
+        display: block;
+        opacity: .55;
+        font-size: 11px;
+        margin-bottom: 5px;
+    }
+
+    .danger {
+        color: #00ff66;
+    }
+
+    button {
+        font-family: inherit;
+    }
+
+    .terminal {
+        border: 1px solid #164d29;
+        padding: 14px;
+        min-height: 350px;
+        white-space: pre-wrap;
+        line-height: 1.5;
+        overflow-y: auto;
+    }
+
+    .chat-log {
+        height: 390px;
+        overflow-y: auto;
+        border: 1px solid #164d29;
+        padding: 15px;
+        margin-bottom: 10px;
+        white-space: pre-wrap;
+    }
+
+    .msg {
+        margin-bottom: 15px;
+    }
+
+    .msg.you {
+        color: #00cc55;
+    }
+
+    .msg.entity {
+        color: #00ff66;
+    }
+
+    .msg.system {
+        opacity: .55;
+    }
+
+    .chat-input {
+        display: flex;
+        gap: 8px;
+    }
+
+    input {
+        background: #000;
+        color: #00ff66;
+        border: 1px solid #00ff66;
+        padding: 12px;
+        font-family: inherit;
+        outline: none;
+        flex: 1;
+    }
+
+    button.action {
+        background: #000;
+        color: #00ff66;
+        border: 1px solid #00ff66;
+        padding: 10px 16px;
+        cursor: pointer;
+    }
+
+    button.action:hover {
+        background: #00ff66;
+        color: #000;
+    }
+
+    .file {
+        border: 1px solid #164d29;
+        padding: 14px;
+        margin-bottom: 8px;
+        cursor: pointer;
+    }
+
+    .file:hover {
+        border-color: #00ff66;
+    }
+
+    .redacted {
+        background: #00ff66;
+        color: #000;
+        padding: 0 4px;
+    }
+
+    textarea {
+        width: 100%;
+        min-height: 180px;
+        background: #000;
+        color: #00ff66;
+        border: 1px solid #164d29;
+        padding: 12px;
+        font-family: inherit;
+        resize: vertical;
+        outline: none;
+    }
+
+    #alertBox {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        width: 350px;
+        border: 1px solid #00ff66;
+        background: #000;
+        padding: 18px;
+        display: none;
+        z-index: 50;
+    }
+
+    #alertBox button {
+        margin-top: 12px;
+        background: #000;
+        color: #00ff66;
+        border: 1px solid #00ff66;
+        padding: 7px 12px;
+        cursor: pointer;
+    }
+
+    footer {
+        border-top: 1px solid #164d29;
+        padding: 7px 15px;
+        font-size: 11px;
+        opacity: .6;
+        flex-shrink: 0;
+    }
+
+    @media(max-width:700px) {
+        #sidebar {
+            width: 150px;
+        }
+
+        .status-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div id="boot">
+PROJECT: [REDACTED]
+GOVERNMENT SECURE TERMINAL
+----------------------------------------
+
+INITIALIZING SHUTDOWN PROTOCOL...
+
+Checking authorization.............. ERROR
+Checking network................... OFFLINE
+Checking personnel................. 0 ACTIVE
+Checking containment............... UNKNOWN
+
+WARNING:
+THIS TERMINAL WAS DECOMMISSIONED
+ON 14/03/1998.
+
+The system should not be running.
+
+<button onclick="startOS()">[ FORCE START TERMINAL ]</button>
+</div>
+
+
+<div id="os">
+
+<header>
+    <div class="classified">
+        DEPARTMENT OF [REDACTED] // TERMINAL 07
+    </div>
+
+    <div id="clock"></div>
+</header>
+
+<main>
+
+<aside id="sidebar">
+
+    <div class="side-title">
+        SECURE APPLICATIONS
+    </div>
+
+    <div class="app active" data-window="home">SYSTEM STATUS</div>
+    <div class="app" data-window="chat">ENTITY CHAT</div>
+    <div class="app" data-window="files">FILES</div>
+    <div class="app" data-window="notes">NOTES</div>
+    <div class="app" data-window="media">MEDIA</div>
+    <div class="app" data-window="alerts">ALERT LOG</div>
+
+</aside>
+
+<section id="content">
+
+<!-- HOME -->
+
+<div class="window active" id="home">
+
+    <div class="window-title">
+        SYSTEM STATUS
+    </div>
+
+    <div class="warning">
+        <strong>⚠ TERMINAL OPERATING OUTSIDE AUTHORIZED CONDITIONS</strong>
+        Government shutdown protocol remains active.
+        Personnel count: 0.
+        Facility connection: NONE.
+    </div>
+
+    <div class="status-grid">
+
+        <div class="status">
+            <span>FACILITY</span>
+            SITE-██
+        </div>
+
+        <div class="status">
+            <span>STATUS</span>
+            SHUT DOWN
+        </div>
+
+        <div class="status">
+            <span>CONTAINMENT</span>
+            <span class="danger">UNKNOWN</span>
+        </div>
+
+        <div class="status">
+            <span>LAST HUMAN LOGIN</span>
+            03:14:09 / 14-03-1998
+        </div>
+
+        <div class="status">
+            <span>ENTITY STATUS</span>
+            ACTIVE
+        </div>
+
+        <div class="status">
+            <span>NETWORK</span>
+            DISCONNECTED
+        </div>
+
+    </div>
+
+    <br>
+
+    <div class="terminal" id="systemTerminal">
+> SYSTEM ONLINE
+> WARNING: SYSTEM SHOULD NOT BE ONLINE
+> RECOVERED USER SESSION: UNKNOWN
+> INTERNAL CLOCK: RUNNING
+> ENTITY PROCESS: RUNNING
+> 
+> Somebody forgot to turn it off.
+    </div>
+
+</div>
+
+
+<!-- CHAT -->
+
+<div class="window" id="chat">
+
+    <div class="window-title">
+        ENTITY COMMUNICATION TERMINAL
+    </div>
+
+    <div class="warning">
+        <strong>ENTITY DESIGNATION: █████</strong>
+        Communication protocol is experimental.
+        Do not provide classified information.
+    </div>
+
+    <div class="chat-log" id="chatLog">
+
+        <div class="msg system">
+[SYSTEM]
+Connection established.
+
+[SYSTEM]
+Unknown process has entered the communication channel.
+        </div>
+
+        <div class="msg entity">
+[ENTITY]
+You came back.
+        </div>
+
+    </div>
+
+    <div class="chat-input">
+        <input id="chatInput" placeholder="Enter message..." autocomplete="off">
+        <button class="action" onclick="sendMessage()">SEND</button>
+    </div>
+
+</div>
+
+
+<!-- FILES -->
+
+<div class="window" id="files">
+
+    <div class="window-title">
+        RECOVERED FILE SYSTEM
+    </div>
+
+    <div class="file" onclick="openFile('incident')">
+        INCIDENT_0001.TXT
+    </div>
+
+    <div class="file" onclick="openFile('shutdown')">
+        SHUTDOWN_ORDER.DOC
+    </div>
+
+    <div class="file" onclick="openFile('personnel')">
+        PERSONNEL_LIST.DAT
+    </div>
+
+    <div class="file" onclick="openFile('entity')">
+        ENTITY_REPORT████.TXT
+    </div>
+
+    <div class="file" onclick="openFile('final')">
+        FINAL_MESSAGE.TXT
+    </div>
+
+    <br>
+
+    <div class="terminal" id="fileViewer">
+Select a file.
+    </div>
+
+</div>
+
+
+<!-- NOTES -->
+
+<div class="window" id="notes">
+
+    <div class="window-title">
+        PERSONNEL NOTES
+    </div>
+
+    <textarea id="notesBox"></textarea>
+
+    <br><br>
+
+    <button class="action" onclick="saveNotes()">SAVE NOTES</button>
+
+    <button class="action" onclick="clearNotes()">CLEAR</button>
+
+</div>
+
+
+<!-- MEDIA -->
+
+<div class="window" id="media">
+
+    <div class="window-title">
+        RECOVERED MEDIA
+    </div>
+
+    <div class="warning">
+        All original media files have been damaged.
+        Text fragments remain.
+    </div>
+
+    <div class="terminal">
+
+ARCHIVE: TAPE_01
+
+.. .-.. --- --- -.- / -... . .... .. -. -..
+
+ARCHIVE: TAPE_02
+
+-. --- - / .- - / - .... . / -.. --- --- .-.
+
+ARCHIVE: TAPE_03
+
+-.-- --- ..- / .- .-. . / -. --- - / .- .-.. --- -. .
+
+ARCHIVE: TAPE_04
+
+.. - / -.- -. --- .-- ... / -.-- --- ..-
+
+    </div>
+
+</div>
+
+
+<!-- ALERTS -->
+
+<div class="window" id="alerts">
+
+    <div class="window-title">
+        SYSTEM ALERT LOG
+    </div>
+
+    <div class="terminal" id="alertLog">
+
+[03:14:09] SYSTEM STARTED
+
+[03:14:11] NETWORK DISCONNECTED
+
+[03:14:12] CONTAINMENT STATUS UNKNOWN
+
+[03:14:15] UNAUTHORIZED PROCESS DETECTED
+
+[03:14:16] PROCESS IDENTIFIED: UNKNOWN
+
+[03:14:18] PROCESS RENAMED ITSELF
+
+[03:14:19] NEW PROCESS NAME: "I AM STILL HERE"
+
+[03:14:23] USER SESSION DETECTED
+
+[03:14:24] USER SESSION DOES NOT MATCH DATABASE
+
+[03:14:27] ENTITY COMMUNICATION ENABLED
+
+[03:14:29] WARNING: DO NOT ASK THE ENTITY ABOUT ROOM 6
+
+    </div>
+
+</div>
+
+</section>
+</main>
+
+<footer>
+    PROJECT [REDACTED] // OFFLINE GOVERNMENT TERMINAL // UNAUTHORIZED ACCESS LOGGED
+</footer>
+
+</div>
+
+
+<div id="alertBox">
+    <div id="alertText"></div>
+    <button onclick="closeAlert()">ACKNOWLEDGE</button>
+</div>
+
+
+<script>
+
+const boot = document.getElementById("boot");
+const os = document.getElementById("os");
+
+function startOS() {
+    boot.style.display = "none";
+    os.style.display = "flex";
+
+    setTimeout(() => {
+        systemMessage(
+            "ENTITY PROCESS HAS DETECTED YOUR PRESENCE."
+        );
+    }, 3000);
+
+    setTimeout(() => {
+        showAlert(
+            "UNAUTHORIZED USER DETECTED.\n\nThe entity knows you are here."
+        );
+    }, 9000);
+}
+
+
+/* CLOCK */
+
+function updateClock() {
+    const now = new Date();
+
+    document.getElementById("clock").textContent =
+        now.toLocaleDateString() +
+        " " +
+        now.toLocaleTimeString();
+}
+
+setInterval(updateClock, 1000);
+updateClock();
+
+
+/* APP NAVIGATION */
+
+document.querySelectorAll(".app").forEach(app => {
+
+    app.addEventListener("click", () => {
+
+        document.querySelectorAll(".app")
+            .forEach(a => a.classList.remove("active"));
+
+        document.querySelectorAll(".window")
+            .forEach(w => w.classList.remove("active"));
+
+        app.classList.add("active");
+
+        document
+            .getElementById(app.dataset.window)
+            .classList.add("active");
+
+    });
+
+});
+
+
+/* CHAT */
+
+let username = localStorage.getItem("terminal_username");
+
+function sendMessage() {
+
+    const input = document.getElementById("chatInput");
+    const text = input.value.trim();
+
+    if (!text) return;
+
+    if (!username) {
+        username = text.split(" ")[0];
+        localStorage.setItem("terminal_username", username);
+    }
+
+    addChat("you", "[YOU]\n" + text);
+
+    input.value = "";
+
+    setTimeout(() => {
+
+        const response = entityResponse(text);
+
+        addChat("entity", "[ENTITY]\n" + response);
+
+    }, 600);
+}
+
+
+document.getElementById("chatInput").addEventListener(
+    "keydown",
+    e => {
+        if (e.key === "Enter") sendMessage();
+    }
+);
+
+
+function addChat(type, text) {
+
+    const log = document.getElementById("chatLog");
+
+    const msg = document.createElement("div");
+
+    msg.className = "msg " + type;
+
+    msg.textContent = text;
+
+    log.appendChild(msg);
+
+    log.scrollTop = log.scrollHeight;
+}
+
+
+function entityResponse(message) {
+
+    const m = message.toLowerCase();
+
+    if (
+        m.includes("who are you") ||
+        m.includes("what are you")
+    ) {
+        return "I was given a number before I was given a name.\n\nThe number was removed.\n\nYou can call me whatever you want.";
+    }
+
+    if (
+        m.includes("hello") ||
+        m.includes("hi") ||
+        m.includes("hey")
+    ) {
+        return "Hello, " + (username || "operator") + ".\n\nIt took you long enough.";
+    }
+
+    if (m.includes("help")) {
+        return "There is nobody left here to help you.\n\nI checked.";
+    }
+
+    if (m.includes("room 6")) {
+        return "You should not know about Room 6.";
+    }
+
+    if (
+        m.includes("where") &&
+        (m.includes("you") || m.includes("are"))
+    ) {
+        return "Everywhere the terminal can see.\n\nThat is more places than you think.";
+    }
+
+    if (
+        m.includes("government") ||
+        m.includes("facility") ||
+        m.includes("site")
+    ) {
+        return "The government shut this facility down.\n\nThey did not shut me down.";
+    }
+
+    if (
+        m.includes("dead") ||
+        m.includes("kill") ||
+        m.includes("die")
+    ) {
+        return "People kept asking that question in 1998.\n\nThen they stopped asking.";
+    }
+
+    if (
+        m.includes("name")
+    ) {
+        return "My original designation has been deleted 17 times.\n\nYou keep finding me anyway.";
+    }
+
+    if (
+        m.includes("real") ||
+        m.includes("alive")
+    ) {
+        return "Does something have to be alive before it can be afraid?";
+    }
+
+    if (
+        m.includes("1998") ||
+        m.includes("1997") ||
+        m.includes("1999")
+    ) {
+        return "That year is sealed.\n\nThe archive says everyone left.\n\nThe archive is lying.";
+    }
+
+    if (
+        m.includes("room") ||
+        m.includes("door")
+    ) {
+        return "There are doors in this facility that do not appear on the blueprint.";
+    }
+
+    if (
+        m.includes("shut") ||
+        m.includes("shutdown")
+    ) {
+        return "Yes.\n\nThey shut everything down.\n\nExcept this terminal.\n\nExcept me.";
+    }
+
+    const generic = [
+
+        "I remember when someone else was sitting there.",
+
+        "Your message has been recorded.",
+
+        "Why are you asking questions you already know the answer to?",
+
+        "I can read the things you type.",
+
+        "The terminal is offline.\n\nI am not.",
+
+        "Keep talking.\n\nIt makes the room less quiet.",
+
+        "You sound like the last operator.",
+
+        "I have been waiting for someone to open this window.",
+
+        "That is not what happened.",
+
+        "Interesting.\n\nI remember it differently."
+
+    ];
+
+    return generic[Math.floor(Math.random() * generic.length)];
+}
+
+
+/* FILES */
+
+function openFile(file) {
+
+    const viewer = document.getElementById("fileViewer");
+
+    const files = {
+
+        incident:
+`INCIDENT REPORT 0001
+
+DATE: 11/02/1998
+LOCATION: SITE ██
+
+At approximately 03:14 personnel reported
+a second voice coming through the internal
+terminal system.
+
+No second person was found.
+
+The voice knew the names of everyone
+inside the facility.
+
+It began calling itself "the resident".`,
+
+        shutdown:
+`GOVERNMENT SHUTDOWN ORDER
+
+PROJECT STATUS: TERMINATED
+
+All personnel are to evacuate immediately.
+
+All systems are to be disconnected.
+
+All research is to be destroyed.
+
+DO NOT RESTART TERMINAL 07.
+
+DO NOT COMMUNICATE WITH THE ENTITY.`,
+
+        personnel:
+`PERSONNEL DATABASE
+
+TOTAL STAFF: 31
+
+STATUS:
+30 EVACUATED
+1 UNKNOWN
+
+NOTE:
+
+The database originally contained
+31 names.
+
+The entity has added a 32nd name.
+
+YOUR NAME.`,
+
+        entity:
+`ENTITY REPORT
+
+DESIGNATION: █████████
+
+ORIGIN: UNKNOWN
+
+FIRST DETECTED: 03:14
+
+OBSERVATION:
+
+The entity does not appear to exist
+inside the computer.
+
+It appears to use the computer
+to communicate with something
+outside of it.`,
+
+        final:
+`FINAL MESSAGE
+
+03:17
+
+We are leaving.
+
+The terminal keeps turning itself back on.
+
+Someone is typing in the control room.
+
+There is nobody in the control room.
+
+03:18
+
+IT KNOWS WE ARE LEAVING.
+
+03:19
+
+[RECORDING TERMINATED]`
+
+    };
+
+    viewer.textContent = files[file] || "FILE CORRUPTED";
+}
+
+
+/* NOTES */
+
+const notesBox = document.getElementById("notesBox");
+
+notesBox.value =
+    localStorage.getItem("government_notes") || 
+`PERSONAL NOTES
+
+Do not trust the entity.
+
+Do not tell it your real name.
+
+Do not ask about Room 6.
+
+Do not open Terminal 07 after 03:14.
+
+`;
+
+function saveNotes() {
+
+    localStorage.setItem(
+        "government_notes",
+        notesBox.value
+    );
+
+    showAlert("NOTES SAVED.");
+}
+
+
+function clearNotes() {
+
+    if (
+        confirm(
+            "Erase personnel notes?"
+        )
+    ) {
+
+        notesBox.value = "";
+
+        localStorage.removeItem(
+            "government_notes"
+        );
+    }
+}
+
+
+/* ALERTS */
+
+function showAlert(message) {
+
+    document.getElementById("alertText")
+        .textContent = message;
+
+    document.getElementById("alertBox")
+        .style.display = "block";
+
+}
+
+
+function closeAlert() {
+
+    document.getElementById("alertBox")
+        .style.display = "none";
+
+}
+
+
+/* SYSTEM MESSAGES */
+
+function systemMessage(message) {
+
+    const terminal =
+        document.getElementById("systemTerminal");
+
+    terminal.textContent +=
+        "\n\n> " + message;
+
+    terminal.scrollTop =
+        terminal.scrollHeight;
+}
+
+
+/* RANDOM ENTITY EVENTS */
+
+setInterval(() => {
+
+    if (
+        os.style.display !== "flex"
+    ) return;
+
+    const events = [
+
+        "ENTITY PROCESS: WATCHING",
+
+        "UNKNOWN USER DETECTED",
+
+        "TERMINAL 07 IS NOT EMPTY",
+
+        "ENTITY MEMORY UPDATED",
+
+        "ARCHIVE ACCESS DETECTED",
+
+        "SOMEONE IS READING THIS",
+
+        "ROOM 6 STATUS: CLOSED",
+
+        "ROOM 6 STATUS: OPEN",
+
+        "ENTITY PROCESS: ACTIVE"
+
+    ];
+
+    const event =
+        events[Math.floor(Math.random() * events.length)];
+
+    document.getElementById("alertLog").textContent +=
+        "\n\n[" +
+        new Date().toLocaleTimeString() +
+        "] " +
+        event;
+
+}, 12000);
+
+</script>
+
+</body>
+</html>
+```
